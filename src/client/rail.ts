@@ -75,9 +75,15 @@ export function startMobileRail(): MobileRailHandle {
   let attachTimer: number | null = null
 
   /** Place the button as the first child of the official header, else fall back to fixed. */
-  /** Copy the official toggle's glyph so the two controls look identical. */
+  /**
+   * Copy the official panel glyph. The official toggle bundles two marks (the
+   * brand whale for the rail and the panel icon shown on hover / when
+   * expanded); we only want the panel icon.
+   */
   const syncIcon = (el: HTMLButtonElement): void => {
-    const official = document.querySelector('[class$="_toggle"]')
+    const icon = document.querySelector('[class$="_toggle"] [class$="_panelIcon"]')
+      ?? document.querySelector('[class$="_panelIcon"]')
+    const official = icon ?? document.querySelector('[class$="_toggle"]')
     if (official === null || official.innerHTML.trim() === '') return
     if (el.innerHTML !== official.innerHTML) el.innerHTML = official.innerHTML
   }
