@@ -1,15 +1,23 @@
 # wj-dsh-mobile
 
-Portrait-touch adaptation layer for the DeepSeek Harness Web GUI, extracted from
-`wj-dsh-remote`.
+Portrait-touch adaptation layer for the DeepSeek Harness Web GUI, extracted
+from `wj-dsh-remote`.
 
-While a touch device is in portrait and the viewport is under 1100px the plugin
-injects a CSS + gesture layer over the official GUI: 44px touch targets, 16px
-inputs (no iOS focus zoom), safe-area padding, a draggable whale button as the
-collapsed-sidebar entry, swipe gestures, long-press session menus, and desktop
-surface suppression. Landscape, desktop and wide viewports are untouched.
+**Status: archived.** Every adaptation rule is parked under `archive/` and the
+runtime half is a no-op. The plugin keeps its bundle row so pieces can be
+recalled without re-introducing the package; see
+[`archive/README.md`](archive/README.md) for the inventory, the former wiring,
+and the recall checklist.
 
-Opt out manually: `sessionStorage['wj-dsh-mobile-force-desktop'] = '1'`.
+## Layout
+
+```text
+archive/mobile-adapt.ts   the whole touch layer (CSS, gestures, whale button)
+archive/README.md         what it did, how to recall it
+src/client/index.ts       no-op client entry
+src/index.ts              no-op host entry
+cordis.patch.yml          single plugin row
+```
 
 ## Install
 
@@ -17,23 +25,15 @@ Opt out manually: `sessionStorage['wj-dsh-mobile-force-desktop'] = '1'`.
 dsh plugin --profile web add github:WJBFks/wj-dsh-mobile
 ```
 
-Then restart the profile once (a new bundle row must be loaded).
-
-## Layout
-
-- `src/client/mobile-adapt.ts` — the layer itself (DOM/CSS/gestures)
-- `src/client/index.ts` — mounts it and wires the official `layout` service
-- `src/index.ts` — empty host half (the bundle needs a node-side entry)
-- `cordis.patch.yml` — inserts the single plugin row
+No restart is needed for a client-only change; refresh the page.
 
 ## Build
 
 ```bash
 pnpm install
-pnpm build   # tsc -b && tsdown (uses ../../shared/tsdown.client.ts in the monorepo workspace)
+pnpm build   # tsc -b && tsdown (uses ../../shared/tsdown.client.ts in the workspace)
 ```
 
 ## License
 
-Apache-2.0. See LICENSE and NOTICE (extracted from wj-dsh-remote, which derives
-from @linxin666/dsh-remote-web-ui).
+Apache-2.0. See LICENSE and NOTICE.

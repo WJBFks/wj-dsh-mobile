@@ -1,6 +1,6 @@
 {
   "name": "wj-dsh-mobile",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "Portrait-touch adaptation layer for the DeepSeek Harness Web GUI, extracted from wj-dsh-remote.",
   "license": "Apache-2.0",
@@ -30,10 +30,7 @@
       "patch": "./cordis.patch.yml"
     },
     "client": {
-      "inject": [
-        "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-sidebar"
-      ],
+      "inject": [],
       "platform": "web"
     }
   },
@@ -44,9 +41,5 @@
     "@types/node": "^22.20.0",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/WJBFks/wj-dsh-mobile.git"
   }
 }

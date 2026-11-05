@@ -1,8 +1,9 @@
-export declare const inject: string[];
-interface MobileClientContext {
-    get(name: string): unknown;
-    effect?(factory: () => () => void, label?: string): void;
-}
-export declare function apply(ctx: MobileClientContext): void;
-export {};
+/**
+ * wj-dsh-mobile — browser half (archive mode).
+ *
+ * Every adaptation rule was moved to `archive/` and is inert. This module
+ * exists so the bundle still has a client entry; recall pieces from
+ * `archive/README.md` when needed.
+ */
+export declare function apply(): void;
 //# sourceMappingURL=index.d.ts.map
