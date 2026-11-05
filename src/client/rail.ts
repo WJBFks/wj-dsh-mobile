@@ -75,21 +75,7 @@ export function startMobileRail(): MobileRailHandle {
   let attachTimer: number | null = null
 
   /** Place the button as the first child of the official header, else fall back to fixed. */
-  /**
-   * Copy the official panel glyph. The official toggle bundles two marks (the
-   * brand whale for the rail and the panel icon shown on hover / when
-   * expanded); we only want the panel icon.
-   */
-  const syncIcon = (el: HTMLButtonElement): void => {
-    const icon = document.querySelector('[class$="_toggle"] [class$="_panelIcon"]')
-      ?? document.querySelector('[class$="_panelIcon"]')
-    const official = icon ?? document.querySelector('[class$="_toggle"]')
-    if (official === null || official.innerHTML.trim() === '') return
-    if (el.innerHTML !== official.innerHTML) el.innerHTML = official.innerHTML
-  }
-
   const attach = (el: HTMLButtonElement): void => {
-    syncIcon(el)
     const header = document.querySelector('[class$="_headerLeading"]')
       ?? document.querySelector('[data-slot="conversation.header.leading"]')
       ?? document.querySelector('[class$="_titleRow"]')
@@ -114,7 +100,7 @@ export function startMobileRail(): MobileRailHandle {
     el.id = BUTTON_ID
     el.type = 'button'
     el.setAttribute('aria-label', '打开侧栏')
-    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M5.5 8h1M5.5 12h1"/></svg>'
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>'
     el.setAttribute('aria-label', '展开或折叠侧栏')
     el.addEventListener('click', (event) => {
       event.preventDefault()
