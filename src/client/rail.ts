@@ -99,6 +99,8 @@ export function startMobileRail(): MobileRailHandle {
       }
       rightbarObserver?.disconnect()
       rightbarObserver = null
+      document.removeEventListener('click', onCaptureClick, true)
+      dropPlaceholder()
       return
     }
     if (el.parentElement !== document.body) document.body.appendChild(el)
@@ -142,6 +144,7 @@ export function startMobileRail(): MobileRailHandle {
       document.body.classList.add(BODY_CLASS)
       ensureStyle()
       ensureButton()
+      document.addEventListener('click', onCaptureClick, true)
       observeRightbar()
     } else {
       document.body.classList.remove(BODY_CLASS)
@@ -154,6 +157,8 @@ export function startMobileRail(): MobileRailHandle {
       }
       rightbarObserver?.disconnect()
       rightbarObserver = null
+      document.removeEventListener('click', onCaptureClick, true)
+      dropPlaceholder()
     }
   }
 
@@ -189,6 +194,57 @@ export function startMobileRail(): MobileRailHandle {
     window.setTimeout(() => clone.remove(), 220)
   }
 
+  let placeholder: HTMLDivElement | null = null
+  let placeholderTimer: number | null = null
+
+  /** Paint an empty right-panel shell immediately, before the real one mounts. */
+  const showRightbarPlaceholder = (): void => {
+    if (document.querySelector('[class$="_frame"][data-rightbar-fullscreen]') !== null) return
+    if (placeholder !== null) return
+    const el = document.createElement('div')
+    el.id = 'wj-mobile-rightbar-placeholder'
+    Object.assign(el.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '2147482599',
+      background: 'var(--dsw-alias-bg-base)',
+      boxShadow: '-8px 0 24px rgba(0,0,0,.18)',
+      transform: 'translateX(100%)',
+      transition: 'transform .16s cubic-bezier(.4,0,.2,1)',
+      pointerEvents: 'none',
+    })
+    document.body.appendChild(el)
+    window.requestAnimationFrame(() => { el.style.transform = 'translateX(0)' })
+    placeholder = el
+    if (placeholderTimer !== null) window.clearTimeout(placeholderTimer)
+    placeholderTimer = window.setTimeout(() => dropPlaceholder(), 900)
+  }
+
+  const dropPlaceholder = (): void => {
+    placeholder?.remove()
+    placeholder = null
+    if (placeholderTimer !== null) {
+      window.clearTimeout(placeholderTimer)
+      placeholderTimer = null
+    }
+  }
+
+  /** A header button whose glyph is a framed panel (rect + divider). */
+  const isRightbarToggle = (target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return false
+    const button = target.closest('button')
+    if (button === null) return false
+    if (button.id === BUTTON_ID) return false
+    const svg = button.querySelector('svg')
+    if (svg === null) return false
+    if (svg.querySelector('rect') === null) return false
+    return true
+  }
+
+  const onCaptureClick = (event: Event): void => {
+    if (isRightbarToggle(event.target)) showRightbarPlaceholder()
+  }
+
   let rightbarObserver: MutationObserver | null = null
   let rightbarOpen = false
   const observeRightbar = (): void => {
@@ -197,7 +253,10 @@ export function startMobileRail(): MobileRailHandle {
     rightbarOpen = frame.hasAttribute(RIGHTBAR_FULLSCREEN_ATTR)
     rightbarObserver = new MutationObserver(() => {
       const open = frame.hasAttribute(RIGHTBAR_FULLSCREEN_ATTR)
-      if (rightbarOpen && !open) animateRightbarOut()
+      if (rightbarOpen && !open) { animateRightbarOut(); dropPlaceholder() }
+      if (!rightbarOpen && open) {
+        if (placeholder !== null) window.setTimeout(() => dropPlaceholder(), 220)
+      }
       rightbarOpen = open
     })
     rightbarObserver.observe(frame, { attributes: true, attributeFilter: [RIGHTBAR_FULLSCREEN_ATTR] })
