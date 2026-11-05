@@ -77,11 +77,19 @@ export function startMobileRail(): MobileRailHandle {
 
   /** Place the button as the first child of the official header, else fall back to fixed. */
   const attach = (el: HTMLButtonElement): void => {
-    const header = document.querySelector('[class$="_headerLeading"]')
-      ?? document.querySelector('[data-slot="conversation.header.leading"]')
-      ?? document.querySelector('[class$="_titleRow"]')
-      ?? document.querySelector('header[class$="_header"]')
-      ?? document.querySelector('[class$="_header"]')
+    const candidates = [
+      ...document.querySelectorAll('[class$="_headerLeading"]'),
+      ...document.querySelectorAll('[data-slot="conversation.header.leading"]'),
+      ...document.querySelectorAll('[class$="_titleRow"]'),
+      ...document.querySelectorAll('header[class$="_header"]'),
+      ...document.querySelectorAll('[class$="_header"]'),
+    ]
+    // Only a rendered header can host the button; a hidden pane's header (the
+    // new-conversation page keeps one mounted) would swallow it invisibly.
+    const header = candidates.find((el) => {
+      const rect = el.getBoundingClientRect()
+      return rect.width > 0 && rect.height > 0
+    }) ?? null
     if (header !== null) {
       if (el.parentElement !== header) header.insertBefore(el, header.firstChild)
       el.removeAttribute('data-fallback')
