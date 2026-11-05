@@ -1,0 +1,7 @@
+wj-dsh-mobile
+=============
+
+The portrait-touch adaptation layer (`src/client/mobile-adapt.ts`) was extracted
+from wj-dsh-remote, which in turn derived from `@linxin666/dsh-remote-web-ui`
+(Apache-2.0). Modifications: standalone plugin packaging, local label seat,
+force-desktop key renamed to wj-dsh-mobile-force-desktop.

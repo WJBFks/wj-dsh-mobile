@@ -1,0 +1,5 @@
+# One row: the browser half installs the portrait-touch layer over the
+# official Web GUI. No host behaviour.
+- insert:
+    - id: wj-dsh-mobile
+      name: wj-dsh-mobile
