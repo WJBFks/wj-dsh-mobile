@@ -124,6 +124,7 @@ export function startMobileRail(): MobileRailHandle {
     if (attachTimer === null) {
       attachTimer = window.setInterval(() => {
         if (button !== null) attach(button)
+        observeRightbar()
       }, 800)
     }
     button = el
@@ -173,10 +174,10 @@ export function startMobileRail(): MobileRailHandle {
     const clone = col.cloneNode(true) as HTMLElement
     Object.assign(clone.style, {
       position: 'fixed',
-      left: `${rect.left}px`,
-      top: `${rect.top}px`,
-      width: `${rect.width}px`,
-      height: `${rect.height}px`,
+      left: '0',
+      top: '0',
+      width: '100vw',
+      height: '100dvh',
       margin: '0',
       zIndex: '2147482601',
       background: 'var(--dsw-alias-bg-base)',
@@ -229,16 +230,13 @@ export function startMobileRail(): MobileRailHandle {
     }
   }
 
-  /** A header button whose glyph is a framed panel (rect + divider). */
+  /** The official right-panel toggle, matched by its localized aria-label. */
   const isRightbarToggle = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false
     const button = target.closest('button')
-    if (button === null) return false
-    if (button.id === BUTTON_ID) return false
-    const svg = button.querySelector('svg')
-    if (svg === null) return false
-    if (svg.querySelector('rect') === null) return false
-    return true
+    if (button === null || button.id === BUTTON_ID) return false
+    const label = (button.getAttribute('aria-label') ?? button.getAttribute('title') ?? '').toLowerCase()
+    return label.includes('右侧边栏') || label.includes('right sidebar')
   }
 
   const onCaptureClick = (event: Event): void => {
@@ -246,10 +244,16 @@ export function startMobileRail(): MobileRailHandle {
   }
 
   let rightbarObserver: MutationObserver | null = null
+  let rightbarObserverFrame: Element | null = null
   let rightbarOpen = false
   const observeRightbar = (): void => {
     const frame = document.querySelector('[class$="_frame"]')
-    if (frame === null || rightbarObserver !== null) return
+    if (frame === null) return
+    if (rightbarObserver !== null) {
+      if (rightbarObserverFrame === frame) return
+      rightbarObserver.disconnect()
+      rightbarObserver = null
+    }
     rightbarOpen = frame.hasAttribute(RIGHTBAR_FULLSCREEN_ATTR)
     rightbarObserver = new MutationObserver(() => {
       const open = frame.hasAttribute(RIGHTBAR_FULLSCREEN_ATTR)
@@ -259,6 +263,7 @@ export function startMobileRail(): MobileRailHandle {
       }
       rightbarOpen = open
     })
+    rightbarObserverFrame = frame
     rightbarObserver.observe(frame, { attributes: true, attributeFilter: [RIGHTBAR_FULLSCREEN_ATTR] })
   }
 
