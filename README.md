@@ -3,11 +3,11 @@
 Portrait-touch adaptation layer for the DeepSeek Harness Web GUI, extracted
 from `wj-dsh-remote`.
 
-**Status: archived.** Every adaptation rule is parked under `archive/` and the
-runtime half is a no-op. The plugin keeps its bundle row so pieces can be
-recalled without re-introducing the package; see
-[`archive/README.md`](archive/README.md) for the inventory, the former wiring,
-and the recall checklist.
+**Status: one active adaptation, the rest archived.** The portrait rail
+replacement is live: on a portrait touch viewport the official 56px icon rail
+is hidden and a single floating button at the same spot opens the sidebar
+drawer. Everything else stays parked under `archive/`; see
+[`archive/README.md`](archive/README.md) for the inventory and recall steps.
 
 ## Layout
 
