@@ -20,6 +20,7 @@ body.${BODY_CLASS} [data-rightbar-col="true"]{display:none!important}
 #${BUTTON_ID}:hover{background:var(--dsw-alias-interactive-bg-hover)}
 #${BUTTON_ID}:active{opacity:.72}
 #${BUTTON_ID} svg{width:18px;height:18px;display:block}
+#${BUTTON_ID}[data-fallback]{position:fixed;top:calc(6px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));z-index:2147482999;background:var(--dsw-alias-bg-module-platform);border:1px solid var(--dsw-alias-border-l2);box-shadow:0 1px 6px rgba(0,0,0,.22)}
 `
 
 export interface MobileRailHandle {
@@ -71,6 +72,26 @@ export function startMobileRail(): MobileRailHandle {
     ;(document.querySelector('[class$="_collapsed"] [class$="_toggle"], [class$="_railFish"] button') as HTMLElement | null)?.click()
   }
 
+  let attachTimer: number | null = null
+
+  /** Place the button as the first child of the official header, else fall back to fixed. */
+  const attach = (el: HTMLButtonElement): void => {
+    const header = document.querySelector('[class$="_titleRow"]')
+      ?? document.querySelector('[class$="_header"]')
+      ?? document.querySelector('[class*="_titleCluster"]')
+    if (header !== null) {
+      if (el.parentElement !== header) header.insertBefore(el, header.firstChild)
+      el.removeAttribute('data-fallback')
+      if (attachTimer !== null) {
+        window.clearInterval(attachTimer)
+        attachTimer = null
+      }
+      return
+    }
+    if (el.parentElement !== document.body) document.body.appendChild(el)
+    el.setAttribute('data-fallback', 'true')
+  }
+
   const ensureButton = (): HTMLButtonElement => {
     if (button !== null && button.isConnected) return button
     const el = document.createElement('button')
@@ -84,11 +105,11 @@ export function startMobileRail(): MobileRailHandle {
       event.stopPropagation()
       toggle()
     })
-    const header = document.querySelector('[class$="_titleRow"]') ?? document.querySelector('[class$="_header"]')
-    if (header === null) {
-      ;(document.body as HTMLElement).appendChild(el)
-    } else {
-      header.insertBefore(el, header.firstChild)
+    attach(el)
+    if (attachTimer === null) {
+      attachTimer = window.setInterval(() => {
+        if (button !== null && button.isConnected) attach(button)
+      }, 800)
     }
     button = el
     return el
@@ -113,6 +134,10 @@ export function startMobileRail(): MobileRailHandle {
       removeStyle()
       button?.remove()
       button = null
+      if (attachTimer !== null) {
+        window.clearInterval(attachTimer)
+        attachTimer = null
+      }
     }
   }
 
