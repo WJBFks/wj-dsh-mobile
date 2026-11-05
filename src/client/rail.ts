@@ -76,9 +76,11 @@ export function startMobileRail(): MobileRailHandle {
 
   /** Place the button as the first child of the official header, else fall back to fixed. */
   const attach = (el: HTMLButtonElement): void => {
-    const header = document.querySelector('[class$="_titleRow"]')
+    const header = document.querySelector('[class$="_headerLeading"]')
+      ?? document.querySelector('[data-slot="conversation.header.leading"]')
+      ?? document.querySelector('[class$="_titleRow"]')
+      ?? document.querySelector('header[class$="_header"]')
       ?? document.querySelector('[class$="_header"]')
-      ?? document.querySelector('[class*="_titleCluster"]')
     if (header !== null) {
       if (el.parentElement !== header) header.insertBefore(el, header.firstChild)
       el.removeAttribute('data-fallback')
@@ -108,7 +110,7 @@ export function startMobileRail(): MobileRailHandle {
     attach(el)
     if (attachTimer === null) {
       attachTimer = window.setInterval(() => {
-        if (button !== null && button.isConnected) attach(button)
+        if (button !== null) attach(button)
       }, 800)
     }
     button = el
