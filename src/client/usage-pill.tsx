@@ -31,7 +31,7 @@ const LABELS = ['日', '周', '月'] as const
 const CSS = `
 .wj-usage-pill{display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:28px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:999px;background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-secondary);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .wj-hide-official-pill{display:none!important}
-button[aria-label*="OpenCode Go"]{position:absolute!important;left:-9999px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+button[aria-label*="OpenCode Go"]:not(.wj-usage-pill){position:absolute!important;left:-9999px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
 .wj-usage-pill{border:1px solid var(--dsw-alias-border-l2);cursor:pointer}
 `
 
@@ -103,7 +103,7 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
     if (usage === null) return null
     const values = [usage.rolling, usage.weekly, usage.monthly]
     const openOfficial = (): void => {
-      const official = document.querySelector('button[aria-label*="OpenCode Go"]') as HTMLButtonElement | null
+      const official = document.querySelector('button[aria-label*="OpenCode Go"]:not(.wj-usage-pill)') as HTMLButtonElement | null
       if (official === null || ref.current === null) return
       const rect = ref.current.getBoundingClientRect()
       const previous = official.getAttribute('style') ?? ''
