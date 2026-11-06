@@ -35,9 +35,10 @@ export function apply(ctx: MobileClientContext): void {
   injectFn?.call(ctx, ['remote.opencodeGoUsage'], (scope: unknown) => {
     const mounted = scope as {
       slots?: { inject(name: string, fn: () => void): void; register(entry: Record<string, unknown>, component: unknown): void }
+      remote?: { opencodeGoUsage?: unknown }
     }
-    const slots = mounted.slots
-    const remote = (ctx as unknown as { remote?: { opencodeGoUsage?: unknown } }).remote
+    const slots = mounted.slots ?? (ctx as unknown as { slots?: typeof mounted.slots }).slots
+    const remote = mounted.remote ?? (ctx as unknown as { remote?: typeof mounted.remote }).remote
     if (slots === undefined || remote?.opencodeGoUsage === undefined) return
     slots.inject('conversation.input.right', () => {
       slots.register({
