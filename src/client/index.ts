@@ -31,16 +31,11 @@ export function apply(ctx: MobileClientContext): void {
 
   // Compact OpenCode Go usage pill: only when that plugin's remote surface is
   // present, so the mobile layer stays independent of it.
-  const dbg = (window as unknown as { __wjMobileDebug?: Record<string, unknown> }).__wjMobileDebug ??= {}
-  dbg.apply = true
   const ctxAny = ctx as unknown as { get?: (name: string) => any; slots?: any; remote?: any }
   const slots = ctxAny.slots ?? ctxAny.get?.('slots')
   const remote = ctxAny.remote ?? ctxAny.get?.('remote')
-  dbg.hasSlots = slots !== undefined
-  dbg.hasUsageNs = remote?.opencodeGoUsage !== undefined
   if (slots !== undefined && remote?.opencodeGoUsage !== undefined) {
     slots.inject('conversation.input.right', () => {
-      dbg.registered = true
       slots.register({
         name: 'conversation.input.right',
         id: 'wj-usage-pill',
