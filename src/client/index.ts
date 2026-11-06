@@ -8,7 +8,7 @@
 import { startMobileRail, type MobileRailHandle } from './rail.ts'
 import { createUsagePill } from './usage-pill.tsx'
 
-export const inject = ['layout', 'slots']
+export const inject = ['layout', 'slots', 'remote.opencodeGoUsage']
 
 interface MobileClientContext {
   get(name: string): unknown
@@ -33,11 +33,10 @@ export function apply(ctx: MobileClientContext): void {
   // present, so the mobile layer stays independent of it.
   const dbg = (window as unknown as { __wjMobileDebug?: Record<string, unknown> }).__wjMobileDebug ??= {}
   dbg.apply = true
-  const ctxAny = ctx as unknown as { get?: (name: string) => any; slots?: any }
+  const ctxAny = ctx as unknown as { get?: (name: string) => any; slots?: any; remote?: any }
   const slots = ctxAny.slots ?? ctxAny.get?.('slots')
-  const remote = ctxAny.get?.('remote')
+  const remote = ctxAny.remote ?? ctxAny.get?.('remote')
   dbg.hasSlots = slots !== undefined
-  dbg.hasRemote = remote !== undefined
   dbg.hasUsageNs = remote?.opencodeGoUsage !== undefined
   if (slots !== undefined && remote?.opencodeGoUsage !== undefined) {
     slots.inject('conversation.input.right', () => {
