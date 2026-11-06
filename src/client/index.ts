@@ -8,7 +8,7 @@
 import { startMobileRail, type MobileRailHandle } from './rail.ts'
 import { createUsagePill } from './usage-pill.tsx'
 
-export const inject = ['layout', 'slots', 'remote', 'remote.opencodeGoUsage']
+export const inject = ['layout', 'slots']
 
 interface MobileClientContext {
   get(name: string): unknown
@@ -31,17 +31,24 @@ export function apply(ctx: MobileClientContext): void {
 
   // Compact OpenCode Go usage pill: only when that plugin's remote surface is
   // present, so the mobile layer stays independent of it.
-  const ctxAny = ctx as unknown as { get?: (name: string) => any; slots?: any; remote?: any }
-  const slots = ctxAny.slots ?? ctxAny.get?.('slots')
-  const remote = ctxAny.remote ?? ctxAny.get?.('remote')
-  if (slots !== undefined && remote?.opencodeGoUsage !== undefined) {
-    slots.inject('conversation.input.right', () => {
-      slots.register({
-        name: 'conversation.input.right',
-        id: 'wj-usage-pill',
-        order: 1001,
-        inject: () => ({}),
-      }, createUsagePill(remote))
-    })
-  }
+  // OpenCode Go adaptation is a child plugin: when that plugin (or its remote
+  // namespace) is absent this stays inactive and the rail keeps working.
+  const pluginFn = (ctx as unknown as { plugin?: (plugin: unknown) => unknown }).plugin
+  pluginFn?.call(ctx, {
+    inject: ['remote', 'remote.opencodeGoUsage'],
+    apply(child: unknown) {
+      const childCtx = child as { slots?: any; remote?: any }
+      const slots = childCtx.slots
+      const remote = childCtx.remote
+      if (slots === undefined || remote?.opencodeGoUsage === undefined) return
+      slots.inject('conversation.input.right', () => {
+        slots.register({
+          name: 'conversation.input.right',
+          id: 'wj-usage-pill',
+          order: 1001,
+          inject: () => ({}),
+        }, createUsagePill(remote))
+      })
+    },
+  })
 }
