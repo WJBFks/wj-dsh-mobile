@@ -33,29 +33,21 @@ export function apply(ctx: MobileClientContext): void {
   // present, so the mobile layer stays independent of it.
   const dbg = (window as unknown as { __wjMobileDebug?: Record<string, unknown> }).__wjMobileDebug ??= {}
   dbg.apply = true
-  const ctxAny = ctx as unknown as { inject?: (deps: string[], fn: (scope: any) => void) => void; remote?: any; slots?: any }
-  dbg.hasInject = typeof ctxAny.inject === 'function'
-  dbg.hasRemote = ctxAny.remote !== undefined
-  dbg.hasUsageNs = ctxAny.remote?.opencodeGoUsage !== undefined
-  ctxAny.inject?.(['remote'], (r: any) => {
-    dbg.remoteInjected = true
-    dbg.rHasInject = typeof r.inject === 'function'
-    dbg.rHasSlots = r.slots !== undefined
-    dbg.rHasUsageNs = r.remote?.opencodeGoUsage !== undefined
-    r.inject?.(['remote.opencodeGoUsage'], (ready: any) => {
-      dbg.usageInjected = true
-      const slots = ready.slots ?? r.slots ?? ctxAny.slots
-      const remote = ready.remote ?? r.remote ?? ctxAny.remote
-      if (slots === undefined || remote?.opencodeGoUsage === undefined) return
-      slots.inject('conversation.input.right', () => {
-        dbg.registered = true
-        slots.register({
-          name: 'conversation.input.right',
-          id: 'wj-usage-pill',
-          order: 1001,
-          inject: () => ({}),
-        }, createUsagePill(remote as never))
-      })
+  const ctxAny = ctx as unknown as { get?: (name: string) => any; slots?: any }
+  const slots = ctxAny.slots ?? ctxAny.get?.('slots')
+  const remote = ctxAny.get?.('remote')
+  dbg.hasSlots = slots !== undefined
+  dbg.hasRemote = remote !== undefined
+  dbg.hasUsageNs = remote?.opencodeGoUsage !== undefined
+  if (slots !== undefined && remote?.opencodeGoUsage !== undefined) {
+    slots.inject('conversation.input.right', () => {
+      dbg.registered = true
+      slots.register({
+        name: 'conversation.input.right',
+        id: 'wj-usage-pill',
+        order: 1001,
+        inject: () => ({}),
+      }, createUsagePill(remote))
     })
-  })
+  }
 }
