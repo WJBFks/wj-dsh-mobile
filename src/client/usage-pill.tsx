@@ -121,6 +121,11 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
     if (usage === null) return null
     const values = [usage.rolling, usage.weekly, usage.monthly]
     const openOfficial = (): void => {
+      // Already open: close it instead of forwarding another open click.
+      if (document.querySelector('[role="dialog"]') !== null) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }))
+        return
+      }
       updatePanelOffset()
       const official = document.querySelector('button[aria-label*="OpenCode Go"]:not(.wj-usage-pill)') as HTMLButtonElement | null
       if (official === null || ref.current === null) return
