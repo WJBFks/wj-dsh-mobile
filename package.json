@@ -1,6 +1,6 @@
 {
   "name": "wj-dsh-mobile",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "private": false,
   "description": "Portrait-touch adaptation layer for the DeepSeek Harness Web GUI, extracted from wj-dsh-remote.",
   "license": "Apache-2.0",
@@ -42,6 +42,8 @@
   "devDependencies": {
     "@types/node": "^22.20.0",
     "tsdown": "^0.22.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "react": "^18.2.0",
+    "@types/react": "~18.3.1"
   }
 }

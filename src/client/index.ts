@@ -6,8 +6,9 @@
  * archived under /archive and can be recalled piece by piece.
  */
 import { startMobileRail, type MobileRailHandle } from './rail.ts'
+import { createUsagePill } from './usage-pill.tsx'
 
-export const inject = ['layout']
+export const inject = ['layout', 'slots']
 
 interface MobileClientContext {
   get(name: string): unknown
@@ -27,4 +28,24 @@ export function apply(ctx: MobileClientContext): void {
     }
   }
   ctx.effect?.(() => () => rail.dispose(), 'wj-dsh-mobile: rail')
+
+  // Compact OpenCode Go usage pill: only when that plugin's remote surface is
+  // present, so the mobile layer stays independent of it.
+  const injectFn = (ctx as unknown as { inject?: (deps: string[], fn: (scope: unknown) => void) => void }).inject
+  injectFn?.call(ctx, ['remote.opencodeGoUsage'], (scope: unknown) => {
+    const mounted = scope as {
+      slots?: { inject(name: string, fn: () => void): void; register(entry: Record<string, unknown>, component: unknown): void }
+    }
+    const slots = mounted.slots
+    const remote = (ctx as unknown as { remote?: { opencodeGoUsage?: unknown } }).remote
+    if (slots === undefined || remote?.opencodeGoUsage === undefined) return
+    slots.inject('conversation.input.right', () => {
+      slots.register({
+        name: 'conversation.input.right',
+        id: 'wj-usage-pill',
+        order: 1001,
+        inject: () => ({}),
+      }, createUsagePill(remote as never))
+    })
+  })
 }
