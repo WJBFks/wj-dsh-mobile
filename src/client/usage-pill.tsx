@@ -123,7 +123,9 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
     const openOfficial = (): void => {
       // Already open: close it instead of forwarding another open click.
       if (document.querySelector('[role="dialog"]') !== null) {
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }))
+        const escape = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true } as KeyboardEventInit)
+        document.dispatchEvent(escape)
+        window.dispatchEvent(escape)
         return
       }
       updatePanelOffset()
