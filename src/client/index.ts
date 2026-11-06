@@ -33,27 +33,29 @@ export function apply(ctx: MobileClientContext): void {
   // present, so the mobile layer stays independent of it.
   const dbg = (window as unknown as { __wjMobileDebug?: Record<string, unknown> }).__wjMobileDebug ??= {}
   dbg.apply = true
-  dbg.hasInject = typeof (ctx as unknown as { inject?: unknown }).inject === 'function'
-  const injectFn = (ctx as unknown as { inject?: (deps: string[], fn: (scope: unknown) => void) => void }).inject
-  injectFn?.call(ctx, ['remote.opencodeGoUsage'], (scope: unknown) => {
-    const mounted = scope as {
-      slots?: { inject(name: string, fn: () => void): void; register(entry: Record<string, unknown>, component: unknown): void }
-      remote?: { opencodeGoUsage?: unknown }
-    }
-    const slots = mounted.slots ?? (ctx as unknown as { slots?: typeof mounted.slots }).slots
-    const remote = mounted.remote ?? (ctx as unknown as { remote?: typeof mounted.remote }).remote
-    dbg.scope = true
-    dbg.hasSlots = slots !== undefined
-    dbg.hasUsage = remote?.opencodeGoUsage !== undefined
-    if (slots === undefined || remote?.opencodeGoUsage === undefined) return
-    dbg.registered = true
-    slots.inject('conversation.input.right', () => {
-      slots.register({
-        name: 'conversation.input.right',
-        id: 'wj-usage-pill',
-        order: 1001,
-        inject: () => ({}),
-      }, createUsagePill(remote as never))
+  const ctxAny = ctx as unknown as { inject?: (deps: string[], fn: (scope: any) => void) => void; remote?: any; slots?: any }
+  dbg.hasInject = typeof ctxAny.inject === 'function'
+  dbg.hasRemote = ctxAny.remote !== undefined
+  dbg.hasUsageNs = ctxAny.remote?.opencodeGoUsage !== undefined
+  ctxAny.inject?.(['remote'], (r: any) => {
+    dbg.remoteInjected = true
+    dbg.rHasInject = typeof r.inject === 'function'
+    dbg.rHasSlots = r.slots !== undefined
+    dbg.rHasUsageNs = r.remote?.opencodeGoUsage !== undefined
+    r.inject?.(['remote.opencodeGoUsage'], (ready: any) => {
+      dbg.usageInjected = true
+      const slots = ready.slots ?? r.slots ?? ctxAny.slots
+      const remote = ready.remote ?? r.remote ?? ctxAny.remote
+      if (slots === undefined || remote?.opencodeGoUsage === undefined) return
+      slots.inject('conversation.input.right', () => {
+        dbg.registered = true
+        slots.register({
+          name: 'conversation.input.right',
+          id: 'wj-usage-pill',
+          order: 1001,
+          inject: () => ({}),
+        }, createUsagePill(remote as never))
+      })
     })
   })
 }
