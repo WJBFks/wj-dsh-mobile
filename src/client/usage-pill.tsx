@@ -33,7 +33,7 @@ const CSS = `
 .wj-hide-official-pill{display:none!important}
 button[aria-label*="OpenCode Go"]:not(.wj-usage-pill){position:absolute!important;left:-9999px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
 .wj-usage-pill{border:1px solid var(--dsw-alias-border-l2);cursor:pointer}
-.mAjYhq_panel{position:fixed!important;left:8px!important;right:8px!important;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;width:auto!important;max-width:none!important;max-height:78dvh!important;overflow:auto!important;transform:none!important;z-index:2147483000!important}
+.mAjYhq_panel{position:fixed!important;left:8px!important;right:8px!important;top:auto!important;bottom:var(--wj-ocg-panel-bottom,8px)!important;width:auto!important;max-width:none!important;max-height:min(70dvh,calc(100dvh - var(--wj-ocg-panel-bottom,8px) - 16px))!important;overflow:auto!important;transform:none!important;z-index:2147483000!important}
 `
 
 /** Install the shared stylesheet once. */
@@ -44,6 +44,17 @@ function ensureStyle(): void {
   style.dataset.plugin = 'wj-dsh-mobile'
   style.textContent = CSS
   document.head.appendChild(style)
+}
+
+/**
+ * Keep the panel just above the composer: its bottom edge tracks the composer's
+ * top edge, so the sheet opens over the conversation rather than the input.
+ */
+function updatePanelOffset(): void {
+  const composer = document.querySelector('[class$="_composerSeat"]') ?? document.querySelector('[class*="_composer"]')
+  const rect = composer?.getBoundingClientRect()
+  const offset = rect === undefined ? 8 : Math.max(8, Math.round(window.innerHeight - rect.top + 8))
+  document.documentElement.style.setProperty('--wj-ocg-panel-bottom', `${offset}px`)
 }
 
 /** Hide the official three-number capsule without touching its code. */
@@ -95,6 +106,12 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
       return () => { window.clearInterval(timer) }
     }, [])
     useEffect(() => {
+      updatePanelOffset()
+      const onResize = (): void => { updatePanelOffset() }
+      window.addEventListener('resize', onResize)
+      return () => { window.removeEventListener('resize', onResize) }
+    }, [])
+    useEffect(() => {
       hideOfficialPill()
       const observer = new MutationObserver(() => { hideOfficialPill() })
       observer.observe(document.body, { childList: true, subtree: true })
@@ -104,6 +121,7 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
     if (usage === null) return null
     const values = [usage.rolling, usage.weekly, usage.monthly]
     const openOfficial = (): void => {
+      updatePanelOffset()
       const official = document.querySelector('button[aria-label*="OpenCode Go"]:not(.wj-usage-pill)') as HTMLButtonElement | null
       if (official === null || ref.current === null) return
       const rect = ref.current.getBoundingClientRect()
