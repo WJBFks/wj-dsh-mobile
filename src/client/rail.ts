@@ -71,7 +71,11 @@ export function startMobileRail(): MobileRailHandle {
   }
 
   const ensureStyle = (): void => {
-    if (document.getElementById(STYLE_ID) !== null) return
+    const existing = document.getElementById(STYLE_ID)
+    if (existing !== null) {
+      if (existing.textContent !== CSS) existing.textContent = CSS
+      return
+    }
     const style = document.createElement('style')
     style.id = STYLE_ID
     style.dataset.plugin = 'wj-dsh-mobile'
@@ -85,6 +89,9 @@ export function startMobileRail(): MobileRailHandle {
 
   const ensureButton = (): void => {
     if (button !== null && button.isConnected) return
+    // Drop a button left by an earlier module instance (HMR swaps the module
+    // without unmounting the DOM).
+    document.getElementById(BUTTON_ID)?.remove()
     const el = document.createElement('button')
     el.id = BUTTON_ID
     el.type = 'button'
