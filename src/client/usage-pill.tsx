@@ -118,11 +118,14 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
       return () => { observer.disconnect() }
     }, [])
     const ref = useRef<HTMLButtonElement | null>(null)
+    const hadPanel = useRef(false)
     if (usage === null) return null
     const values = [usage.rolling, usage.weekly, usage.monthly]
     const openOfficial = (): void => {
-      // Already open: close it instead of forwarding another open click.
-      if (document.querySelector('[role="dialog"]') !== null) {
+      // Already open before this gesture (the outside pointerdown may have
+      // dismissed it already): do not forward another open click.
+      if (hadPanel.current || document.querySelector('[role="dialog"]') !== null) {
+        hadPanel.current = false
         const escape = new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true } as KeyboardEventInit)
         document.dispatchEvent(escape)
         window.dispatchEvent(escape)
@@ -138,7 +141,14 @@ export function createUsagePill(remote: { opencodeGoUsage: { read(): Promise<{ o
       window.setTimeout(() => { official.setAttribute('style', previous) }, 0)
     }
     return (
-      <button ref={ref} type="button" className="wj-usage-pill" aria-label="OpenCode Go usage" onClick={openOfficial}>
+      <button
+        ref={ref}
+        type="button"
+        className="wj-usage-pill"
+        aria-label="OpenCode Go usage"
+        onPointerDown={() => { hadPanel.current = document.querySelector('[role="dialog"]') !== null }}
+        onClick={openOfficial}
+      >
         {LABELS[index]} {values[index]}%
       </button>
     )
