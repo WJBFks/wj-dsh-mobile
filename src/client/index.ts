@@ -8,7 +8,7 @@
 import { startMobileRail, type MobileRailHandle } from './rail.ts'
 import { createUsagePill } from './usage-pill.tsx'
 
-export const inject = ['layout', 'slots', 'remote.opencodeGoUsage']
+export const inject = ['layout', 'slots', 'remote', 'remote.opencodeGoUsage']
 
 interface MobileClientContext {
   get(name: string): unknown
