@@ -108,6 +108,9 @@ export function startMobileRail(): MobileRailHandle {
         ], { duration: 200, easing: 'cubic-bezier(.4,0,.2,1)' })
       } catch { /* no WAAPI */ }
       window.setTimeout(() => {
+        // The official outside-dismiss may have flipped the state already; a
+        // second toggle here would reopen it (close -> reopen flicker).
+        if (!sidebarOpen()) return
         try { handle.toggleSidebar?.() } catch { /* boot-order */ }
       }, 195)
       return
