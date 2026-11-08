@@ -16,6 +16,8 @@ const CSS = `
 body.${BODY_CLASS} [class$="_frame"]{grid-template-columns:0 minmax(0,1fr) 0!important}
 body.${BODY_CLASS} [class$="_frame"][data-sidebar-collapsed] [class*="_sidebarCol"]{transform:translateX(-100%)!important;opacity:0!important;pointer-events:none!important}
 body.${BODY_CLASS} [class*="_centerCol"]{grid-column:1/-1!important}
+body.${BODY_CLASS} [class$="_navCell"]{justify-content:center!important;padding-left:0!important;padding-right:0!important}
+body.${BODY_CLASS} [class$="_navCell"] [class$="_navLabel"]{display:none!important}
 body.${BODY_CLASS} [role="dialog"][class$="_panel"]:not(.mAjYhq_panel){position:fixed!important;inset:0!important;width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;border-radius:0!important}
 body.${BODY_CLASS} [class$="_overlay"]:has([role="dialog"][class$="_panel"]:not(.mAjYhq_panel)){padding:0!important}
 body.${BODY_CLASS} [class*="_sidebarCol"]{position:fixed!important;top:0!important;bottom:0!important;left:0!important;width:min(280px,86vw)!important;max-width:86vw!important;z-index:30!important;background:transparent!important;box-shadow:0 0 24px rgba(0,0,0,.22)!important;transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .18s ease!important;transform:translateX(0);opacity:1}
@@ -199,6 +201,18 @@ export function startMobileRail(): MobileRailHandle {
     applyPos(el)
   }
 
+  /** Settings nav: icons only, the header carries the active section name. */
+  const syncSettingsNav = (): void => {
+    const nav = document.querySelector('[class$="_nav"]')
+    if (nav === null) return
+    const active = nav.querySelector('[class$="_navCell"][class*="_active"]')
+    const title = nav.querySelector('[class$="_navTitle"] [data-slot="settings.header"]')
+      ?? nav.querySelector('[class$="_navTitle"]')
+    if (active === null || title === null) return
+    const label = active.querySelector('[class$="_navLabel"]')?.textContent?.trim() ?? ''
+    if (label !== '' && title.textContent !== label) title.textContent = label
+  }
+
   const apply = (): void => {
     const next = shouldActivate()
     if (next === active) return
@@ -209,6 +223,7 @@ export function startMobileRail(): MobileRailHandle {
       ensureButton()
       document.addEventListener('pointerdown', onOutsidePointerDown, true)
       document.addEventListener('click', onCollapseClick, true)
+      window.setInterval(syncSettingsNav, 500)
     } else {
       document.body.classList.remove(BODY_CLASS)
       document.removeEventListener('pointerdown', onOutsidePointerDown, true)
