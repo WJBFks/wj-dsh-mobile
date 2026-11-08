@@ -147,6 +147,7 @@ export function startMobileRail(): MobileRailHandle {
     if (button === null || button.id === BUTTON_ID || button.closest('[class*="_sidebarCol"]') === null) return
     event.preventDefault()
     event.stopImmediatePropagation()
+    swallowedEnter = true
     closeWithAnimation()
   }
 
@@ -216,10 +217,20 @@ export function startMobileRail(): MobileRailHandle {
     if (label !== '' && title.textContent !== label) title.textContent = label
   }
 
+  /** Swallow the paired keyup so a keyup-based sender cannot fire either. */
+  const onComposerKeyUp = (event: KeyboardEvent): void => {
+    if (event.key !== 'Enter' || !swallowedEnter) return
+    swallowedEnter = false
+    if (event.target instanceof Element && event.target.closest('[class*="_composerSeat"], textarea, [contenteditable="true"]') === null) return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+  }
+
   /**
    * Mobile Enter inserts a line break instead of sending: capture keydown on
    * the composer, stop the app's send handler and insert the break manually.
    */
+  let swallowedEnter = false
   const onComposerKeyDown = (event: KeyboardEvent): void => {
     if (event.key !== 'Enter') return
     ;(window as unknown as { __wjEnterSeen?: number }).__wjEnterSeen = ((window as unknown as { __wjEnterSeen?: number }).__wjEnterSeen ?? 0) + 1
@@ -232,6 +243,7 @@ export function startMobileRail(): MobileRailHandle {
     if (target.closest('[class*="_overlay"], [role="dialog"]') !== null) return
     event.preventDefault()
     event.stopImmediatePropagation()
+    swallowedEnter = true
     try {
       if (!document.execCommand('insertLineBreak')) {
         if (!document.execCommand('insertText', false, '\n')) document.execCommand('insertParagraph')
@@ -250,13 +262,15 @@ export function startMobileRail(): MobileRailHandle {
       ensureStyle()
       ensureButton()
       document.addEventListener('pointerdown', onOutsidePointerDown, true)
-      document.addEventListener('keydown', onComposerKeyDown, true)
+      window.addEventListener('keydown', onComposerKeyDown, true)
+      window.addEventListener('keyup', onComposerKeyUp, true)
       document.addEventListener('click', onCollapseClick, true)
       window.setInterval(syncSettingsNav, 500)
     } else {
       document.body.classList.remove(BODY_CLASS)
       document.removeEventListener('pointerdown', onOutsidePointerDown, true)
-      document.removeEventListener('keydown', onComposerKeyDown, true)
+      window.removeEventListener('keydown', onComposerKeyDown, true)
+      window.removeEventListener('keyup', onComposerKeyUp, true)
       document.removeEventListener('click', onCollapseClick, true)
       document.getElementById(STYLE_ID)?.remove()
       button?.remove()
