@@ -90,8 +90,32 @@ export function startMobileRail(): MobileRailHandle {
     if (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT' || active.isContentEditable) active.blur()
   }
 
+  /**
+   * Close with our own animation first: the official state flip unmounts the
+   * sidebar content within a frame, which made the close look instant. Sliding
+   * the live element for ~200ms and only then flipping keeps the content on
+   * screen for the whole transition.
+   */
+  const closeWithAnimation = (): void => {
+    const col = document.querySelector('[class*="_sidebarCol"]') as HTMLElement | null
+    if (col !== null && typeof col.animate === 'function') {
+      try {
+        col.animate([
+          { transform: 'translateX(0)', opacity: '1' },
+          { transform: 'translateX(-100%)', opacity: '0' },
+        ], { duration: 200, easing: 'cubic-bezier(.4,0,.2,1)' })
+      } catch { /* no WAAPI */ }
+      window.setTimeout(() => {
+        try { handle.toggleSidebar?.() } catch { /* boot-order */ }
+      }, 195)
+      return
+    }
+    try { handle.toggleSidebar?.() } catch { /* boot-order */ }
+  }
+
   const toggle = (): void => {
     blurComposer()
+    if (sidebarOpen()) { closeWithAnimation(); return }
     try { handle.toggleSidebar?.() } catch { /* boot-order */ }
   }
 
@@ -105,6 +129,17 @@ export function startMobileRail(): MobileRailHandle {
    * Tap anywhere outside the expanded sidebar to close it. Clicks inside the
    * sidebar, on our toggle, or inside a menu/dialog it opened are ignored.
    */
+  const onCollapseClick = (event: Event): void => {
+    if (!sidebarOpen()) return
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const button = target.closest('button[aria-label*="Collapse"], button[aria-label*="折叠"]')
+    if (button === null || button.id === BUTTON_ID || button.closest('[class*="_sidebarCol"]') === null) return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    closeWithAnimation()
+  }
+
   const onOutsidePointerDown = (event: Event): void => {
     if (!sidebarOpen()) return
     const target = event.target
@@ -112,7 +147,7 @@ export function startMobileRail(): MobileRailHandle {
     if (target.closest(`#${BUTTON_ID}`) !== null) return
     if (target.closest('[class*="_sidebarCol"]') !== null) return
     if (target.closest('[role="menu"], [role="dialog"], [role="listbox"], [class*="_overlay"]') !== null) return
-    try { handle.toggleSidebar?.() } catch { /* boot-order */ }
+    closeWithAnimation()
   }
 
   const ensureButton = (): void => {
@@ -168,9 +203,11 @@ export function startMobileRail(): MobileRailHandle {
       ensureStyle()
       ensureButton()
       document.addEventListener('pointerdown', onOutsidePointerDown, true)
+      document.addEventListener('click', onCollapseClick, true)
     } else {
       document.body.classList.remove(BODY_CLASS)
       document.removeEventListener('pointerdown', onOutsidePointerDown, true)
+      document.removeEventListener('click', onCollapseClick, true)
       document.getElementById(STYLE_ID)?.remove()
       button?.remove()
       button = null
