@@ -233,7 +233,6 @@ export function startMobileRail(): MobileRailHandle {
   let swallowedEnter = false
   const onComposerKeyDown = (event: KeyboardEvent): void => {
     if (event.key !== 'Enter') return
-    ;(window as unknown as { __wjEnterSeen?: number }).__wjEnterSeen = ((window as unknown as { __wjEnterSeen?: number }).__wjEnterSeen ?? 0) + 1
     if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return
     if (event.isComposing) return
     const target = event.target
@@ -245,9 +244,15 @@ export function startMobileRail(): MobileRailHandle {
     event.stopImmediatePropagation()
     swallowedEnter = true
     try {
-      if (!document.execCommand('insertLineBreak')) {
-        if (!document.execCommand('insertText', false, '\n')) document.execCommand('insertParagraph')
+      if (target instanceof HTMLTextAreaElement) {
+        document.execCommand('insertText', false, String.fromCharCode(10))
+        return
       }
+      target.dispatchEvent(new InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertLineBreak',
+      }))
     } catch {
       // No editing command available: leave the key blocked so it cannot send.
     }
