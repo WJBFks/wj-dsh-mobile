@@ -84,7 +84,34 @@ export function startMobileRail(): MobileRailHandle {
     document.head.appendChild(style)
   }
 
+  const blurComposer = (): void => {
+    const active = document.activeElement
+    if (!(active instanceof HTMLElement)) return
+    if (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT' || active.isContentEditable) active.blur()
+  }
+
   const toggle = (): void => {
+    blurComposer()
+    try { handle.toggleSidebar?.() } catch { /* boot-order */ }
+  }
+
+  /** Whether the expanded sidebar is currently mounted over the page. */
+  const sidebarOpen = (): boolean => {
+    const frame = document.querySelector('[class$="_frame"]')
+    return frame !== null && !frame.hasAttribute('data-sidebar-collapsed')
+  }
+
+  /**
+   * Tap anywhere outside the expanded sidebar to close it. Clicks inside the
+   * sidebar, on our toggle, or inside a menu/dialog it opened are ignored.
+   */
+  const onOutsidePointerDown = (event: Event): void => {
+    if (!sidebarOpen()) return
+    const target = event.target
+    if (!(target instanceof Element)) return
+    if (target.closest(`#${BUTTON_ID}`) !== null) return
+    if (target.closest('[class*="_sidebarCol"]') !== null) return
+    if (target.closest('[role="menu"], [role="dialog"], [role="listbox"], [class*="_overlay"]') !== null) return
     try { handle.toggleSidebar?.() } catch { /* boot-order */ }
   }
 
@@ -140,8 +167,10 @@ export function startMobileRail(): MobileRailHandle {
       document.body.classList.add(BODY_CLASS)
       ensureStyle()
       ensureButton()
+      document.addEventListener('pointerdown', onOutsidePointerDown, true)
     } else {
       document.body.classList.remove(BODY_CLASS)
+      document.removeEventListener('pointerdown', onOutsidePointerDown, true)
       document.getElementById(STYLE_ID)?.remove()
       button?.remove()
       button = null

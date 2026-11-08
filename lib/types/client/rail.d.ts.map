@@ -1,1 +1,1 @@
-{"version":3,"file":"rail.d.ts","sourceRoot":"","sources":["../../../src/client/rail.ts"],"names":[],"mappings":"AAyBA,MAAM,WAAW,gBAAgB;IAC/B,aAAa,EAAE,CAAC,MAAM,IAAI,CAAC,GAAG,IAAI,CAAA;IAClC,OAAO,EAAE,MAAM,IAAI,CAAA;CACpB;AASD,wBAAgB,eAAe,IAAI,gBAAgB,CAgIlD"}
+{"version":3,"file":"rail.d.ts","sourceRoot":"","sources":["../../../src/client/rail.ts"],"names":[],"mappings":"AAyBA,MAAM,WAAW,gBAAgB;IAC/B,aAAa,EAAE,CAAC,MAAM,IAAI,CAAC,GAAG,IAAI,CAAA;IAClC,OAAO,EAAE,MAAM,IAAI,CAAA;CACpB;AASD,wBAAgB,eAAe,IAAI,gBAAgB,CA6JlD"}
