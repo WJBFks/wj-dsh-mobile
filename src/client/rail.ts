@@ -216,6 +216,28 @@ export function startMobileRail(): MobileRailHandle {
     if (label !== '' && title.textContent !== label) title.textContent = label
   }
 
+  /**
+   * Mobile Enter inserts a line break instead of sending: capture keydown on
+   * the composer, stop the app's send handler and insert the break manually.
+   */
+  const onComposerKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Enter') return
+    if (event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return
+    if (event.isComposing) return
+    const target = event.target
+    if (!(target instanceof Element)) return
+    const composer = target.closest('[class*="_composerSeat"], textarea, [contenteditable="true"]')
+    if (composer === null) return
+    if (target.closest('[class*="_overlay"], [role="dialog"]') !== null) return
+    event.preventDefault()
+    event.stopImmediatePropagation()
+    try {
+      if (!document.execCommand('insertLineBreak')) document.execCommand('insertText', false, '\n')
+    } catch {
+      // No editing command available: leave the key blocked so it cannot send.
+    }
+  }
+
   const apply = (): void => {
     const next = shouldActivate()
     if (next === active) return
@@ -225,11 +247,13 @@ export function startMobileRail(): MobileRailHandle {
       ensureStyle()
       ensureButton()
       document.addEventListener('pointerdown', onOutsidePointerDown, true)
+      document.addEventListener('keydown', onComposerKeyDown, true)
       document.addEventListener('click', onCollapseClick, true)
       window.setInterval(syncSettingsNav, 500)
     } else {
       document.body.classList.remove(BODY_CLASS)
       document.removeEventListener('pointerdown', onOutsidePointerDown, true)
+      document.removeEventListener('keydown', onComposerKeyDown, true)
       document.removeEventListener('click', onCollapseClick, true)
       document.getElementById(STYLE_ID)?.remove()
       button?.remove()
