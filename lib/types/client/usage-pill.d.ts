@@ -1,8 +1,3 @@
-/**
- * Build the slot component bound to one remote surface.
- * @param remote - the injected `remote.opencodeGoUsage` face.
- * @returns the React component registered in the composer slot.
- */
 export declare function createUsagePill(remote: {
     opencodeGoUsage: {
         read(): Promise<{

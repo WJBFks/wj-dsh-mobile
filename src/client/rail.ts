@@ -263,6 +263,8 @@ export function startMobileRail(): MobileRailHandle {
     }
   }
 
+  let settingsTimer: number | null = null
+
   const apply = (): void => {
     const next = shouldActivate()
     if (next === active) return
@@ -275,13 +277,17 @@ export function startMobileRail(): MobileRailHandle {
       window.addEventListener('keydown', onComposerKeyDown, true)
       window.addEventListener('keyup', onComposerKeyUp, true)
       document.addEventListener('click', onCollapseClick, true)
-      window.setInterval(syncSettingsNav, 500)
+      if (settingsTimer === null) settingsTimer = window.setInterval(syncSettingsNav, 500)
     } else {
       document.body.classList.remove(BODY_CLASS)
       document.removeEventListener('pointerdown', onOutsidePointerDown, true)
       window.removeEventListener('keydown', onComposerKeyDown, true)
       window.removeEventListener('keyup', onComposerKeyUp, true)
       document.removeEventListener('click', onCollapseClick, true)
+      if (settingsTimer !== null) {
+        window.clearInterval(settingsTimer)
+        settingsTimer = null
+      }
       document.getElementById(STYLE_ID)?.remove()
       button?.remove()
       button = null
